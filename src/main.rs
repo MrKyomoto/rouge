@@ -162,7 +162,9 @@ fn main() -> BError {
 
     let mut gs = State { ecs: World::new() };
 
-    gs.ecs.insert(map::new_map_rooms_and_corridors());
+    let (map, rooms) = map::new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
+    let (player_init_x, player_init_y) = rooms[0].center();
 
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
@@ -173,7 +175,10 @@ fn main() -> BError {
     // 玩家
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position {
+            x: player_init_x,
+            y: player_init_y,
+        })
         .with(Renderable {
             glyph: to_cp437('@'),
             fg: RGB::named(YELLOW),
@@ -210,27 +215,30 @@ impl<'a> System<'a> for InputSystem<'a> {
         }
 
         match self.ctx.key {
-            Some(VirtualKeyCode::Left) => {
-                for (_, i) in (&players, &mut inputs).join() {
-                    i.dx = -1;
+            None => {}
+            Some(key) => match key {
+                VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
+                    for (_, input) in (&players, &mut inputs).join() {
+                        input.dx = -1;
+                    }
                 }
-            }
-            Some(VirtualKeyCode::Right) => {
-                for (_, i) in (&players, &mut inputs).join() {
-                    i.dx = 1;
+                VirtualKeyCode::Right | VirtualKeyCode::Numpad6 | VirtualKeyCode::L => {
+                    for (_, input) in (&players, &mut inputs).join() {
+                        input.dx = 1;
+                    }
                 }
-            }
-            Some(VirtualKeyCode::Up) => {
-                for (_, i) in (&players, &mut inputs).join() {
-                    i.dy = -1;
+                VirtualKeyCode::Up | VirtualKeyCode::Numpad8 | VirtualKeyCode::K => {
+                    for (_, input) in (&players, &mut inputs).join() {
+                        input.dy = -1;
+                    }
                 }
-            }
-            Some(VirtualKeyCode::Down) => {
-                for (_, i) in (&players, &mut inputs).join() {
-                    i.dy = 1;
+                VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
+                    for (_, input) in (&players, &mut inputs).join() {
+                        input.dy = 1;
+                    }
                 }
-            }
-            _ => {}
+                _ => {}
+            },
         }
     }
 }
