@@ -18,6 +18,7 @@ pub struct Map {
     pub rooms: Vec<Rect>,
     pub width: i32,
     pub height: i32,
+    pub revealed_tiles: Vec<bool>,
 }
 
 impl Algorithm2D for Map {
@@ -37,6 +38,7 @@ impl Map {
             rooms: Vec::new(),
             width: COL as i32,
             height: ROW as i32,
+            revealed_tiles: vec![false; MAP_SIZE],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -82,6 +84,7 @@ impl Map {
             rooms: Vec::new(),
             width: COL as i32,
             height: ROW as i32,
+            revealed_tiles: vec![false; MAP_SIZE],
         };
         for x in 0..map.width {
             map.tiles[flatten_index(x as i32, 0)] = TileType::Wall;

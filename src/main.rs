@@ -73,6 +73,7 @@ fn main() -> BError {
         .with(Viewshed {
             visible_tiles: Vec::new(),
             range: 8,
+            dirty: true,
         })
         .build();
 

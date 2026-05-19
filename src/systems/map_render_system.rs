@@ -1,8 +1,8 @@
-use crate::COL;
 use crate::TileType;
 use crate::components::Player;
 use crate::components::Viewshed;
 use crate::map::Map;
+use crate::utils::flatten_index;
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 
@@ -29,7 +29,7 @@ impl<'a> System<'a> for MapRenderSystem<'a> {
                             self.ctx.set(
                                 x,
                                 y,
-                                RGB::from_f32(0.5, 0.5, 0.5),
+                                RGB::from_f32(0., 0.5, 0.5),
                                 RGB::from_f32(0., 0., 0.),
                                 to_cp437('.'),
                             );
@@ -39,6 +39,27 @@ impl<'a> System<'a> for MapRenderSystem<'a> {
                                 x,
                                 y,
                                 RGB::from_f32(0., 1., 0.),
+                                RGB::from_f32(0., 0., 0.),
+                                to_cp437('#'),
+                            );
+                        }
+                    }
+                } else if map.revealed_tiles[flatten_index(x, y)] {
+                    match tile {
+                        TileType::Floor => {
+                            self.ctx.set(
+                                x,
+                                y,
+                                RGB::from_f32(1., 1., 1.),
+                                RGB::from_f32(0., 0., 0.),
+                                to_cp437('.'),
+                            );
+                        }
+                        TileType::Wall => {
+                            self.ctx.set(
+                                x,
+                                y,
+                                RGB::from_f32(1., 1., 1.),
                                 RGB::from_f32(0., 0., 0.),
                                 to_cp437('#'),
                             );
