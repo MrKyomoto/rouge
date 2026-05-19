@@ -1,6 +1,6 @@
-use crate::{components::Player, map::Map, utils::flatten_index};
+use crate::{map::Map, utils::flatten_index};
 
-use super::{Position, Viewshed};
+use crate::components::{Player, Position, Viewshed};
 use bracket_lib::prelude::{Point, field_of_view};
 use specs::prelude::*;
 

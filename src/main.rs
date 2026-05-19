@@ -46,15 +46,34 @@ fn main() -> BError {
 
     let mut gs = State { ecs: World::new() };
 
-    let map = Map::new_map_rooms_and_corridors();
-    let (init_x, init_y) = map.rooms[0].center();
-    gs.ecs.insert(map);
-
     gs.ecs.register::<Position>();
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<PlayerInput>();
     gs.ecs.register::<Viewshed>();
+
+    let map = Map::new_map_rooms_and_corridors();
+    let (init_x, init_y) = map.rooms[0].center();
+
+    for room in map.rooms.iter().skip(1) {
+        let (x, y) = room.center();
+        gs.ecs
+            .create_entity()
+            .with(Position { x: x, y: y })
+            .with(Renderable {
+                glyph: to_cp437('g'),
+                fg: RGB::named(RED),
+                bg: RGB::named(BLACK),
+            })
+            .with(Viewshed {
+                visible_tiles: Vec::new(),
+                range: 8,
+                dirty: true,
+            })
+            .build();
+    }
+
+    gs.ecs.insert(map);
 
     // 玩家
     gs.ecs
