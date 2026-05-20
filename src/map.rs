@@ -1,7 +1,7 @@
 use crate::rect::Rect;
 use crate::utils::*;
 use bracket_lib::{
-    prelude::{Algorithm2D, BaseMap, Point},
+    prelude::{Algorithm2D, BaseMap, DistanceAlg, Point, SmallVec},
     random::RandomNumberGenerator,
 };
 use std::cmp::{max, min};
@@ -29,6 +29,33 @@ impl Algorithm2D for Map {
 impl BaseMap for Map {
     fn is_opaque(&self, _idx: usize) -> bool {
         self.tiles[_idx] == TileType::Wall
+    }
+    fn get_pathing_distance(&self, idx1: usize, idx2: usize) -> f32 {
+        let (x1, y1) = index_2_xy(idx1, self.width);
+        let (x2, y2) = index_2_xy(idx2, self.width);
+        let p1 = Point::new(x1, y1);
+        let p2 = Point::new(x2, y2);
+        DistanceAlg::Pythagoras.distance2d(p1, p2)
+    }
+    fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
+        let mut exits = SmallVec::new();
+        let (x, y) = index_2_xy(idx, self.width);
+        let w = self.width as usize;
+
+        if self.is_exit_valid(x - 1, y) {
+            exits.push((idx - 1, 1.0))
+        };
+        if self.is_exit_valid(x + 1, y) {
+            exits.push((idx + 1, 1.0))
+        };
+        if self.is_exit_valid(x, y - 1) {
+            exits.push((idx - w, 1.0))
+        };
+        if self.is_exit_valid(x, y + 1) {
+            exits.push((idx + w, 1.0))
+        };
+
+        exits
     }
 }
 impl Map {
@@ -131,5 +158,14 @@ impl Map {
                 self.tiles[idx as usize] = TileType::Floor;
             }
         }
+    }
+
+    fn is_exit_valid(&self, x: i32, y: i32) -> bool {
+        if x < 1 || x > self.width - 1 || y < 1 || y > self.height - 1 {
+            return false;
+        }
+
+        let idx = flatten_index(x, y);
+        self.tiles[idx] != TileType::Wall
     }
 }

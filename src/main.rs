@@ -116,6 +116,7 @@ fn main() -> BError {
     gs.ecs.register::<Player>();
     gs.ecs.register::<PlayerInput>();
     gs.ecs.register::<Monster>();
+    gs.ecs.register::<Name>();
 
     gs.ecs
         .create_entity()
@@ -131,19 +132,22 @@ fn main() -> BError {
     let (init_x, init_y) = map.rooms[0].center();
 
     let mut rng = RandomNumberGenerator::new();
-    for room in map.rooms.iter().skip(1) {
+    for (i, room) in map.rooms.iter().skip(1).enumerate() {
         let (x, y) = room.center();
         let glyph: FontCharType;
         let fg: RGB;
+        let name: String;
         let roll = rng.roll_dice(1, 2);
         match roll {
             1 => {
                 glyph = to_cp437('g');
                 fg = RGB::named(RED);
+                name = String::from("Goblin");
             }
             _ => {
                 glyph = to_cp437('o');
                 fg = RGB::named(BLUE);
+                name = String::from("Orc");
             }
         }
         gs.ecs
@@ -159,6 +163,9 @@ fn main() -> BError {
                 visible_tiles: Vec::new(),
                 range: 8,
                 dirty: true,
+            })
+            .with(Name {
+                name: format!("{} #{}", &name, i),
             })
             .build();
     }
@@ -183,6 +190,9 @@ fn main() -> BError {
             visible_tiles: Vec::new(),
             range: 8,
             dirty: true,
+        })
+        .with(Name {
+            name: String::from("Player"),
         })
         .build();
 

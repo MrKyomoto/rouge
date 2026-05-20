@@ -40,3 +40,8 @@ pub struct Text {
     pub fg: RGB,
     pub bg: RGB,
 }
+
+#[derive(Component, Debug)]
+pub struct Name {
+    pub name: String,
+}
