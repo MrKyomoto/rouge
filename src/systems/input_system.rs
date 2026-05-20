@@ -1,9 +1,10 @@
-use crate::components::*;
+use crate::{RunState, components::*};
 use bracket_lib::prelude::*;
 use specs::prelude::*;
 
 pub struct InputSystem<'a> {
     pub ctx: &'a mut BTerm,
+    pub run_state: &'a mut RunState,
 }
 
 impl<'a> System<'a> for InputSystem<'a> {
@@ -18,24 +19,36 @@ impl<'a> System<'a> for InputSystem<'a> {
         match self.ctx.key {
             None => {}
             Some(key) => match key {
+                VirtualKeyCode::Escape => match *self.run_state {
+                    RunState::Paused => *self.run_state = RunState::Running,
+                    RunState::Running => *self.run_state = RunState::Paused,
+                },
                 VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
-                    for (_, input) in (&players, &mut inputs).join() {
-                        input.dx = -1;
+                    if *self.run_state == RunState::Running {
+                        for (_, input) in (&players, &mut inputs).join() {
+                            input.dx = -1;
+                        }
                     }
                 }
                 VirtualKeyCode::Right | VirtualKeyCode::Numpad6 | VirtualKeyCode::L => {
-                    for (_, input) in (&players, &mut inputs).join() {
-                        input.dx = 1;
+                    if *self.run_state == RunState::Running {
+                        for (_, input) in (&players, &mut inputs).join() {
+                            input.dx = 1;
+                        }
                     }
                 }
                 VirtualKeyCode::Up | VirtualKeyCode::Numpad8 | VirtualKeyCode::K => {
-                    for (_, input) in (&players, &mut inputs).join() {
-                        input.dy = -1;
+                    if *self.run_state == RunState::Running {
+                        for (_, input) in (&players, &mut inputs).join() {
+                            input.dy = -1;
+                        }
                     }
                 }
                 VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
-                    for (_, input) in (&players, &mut inputs).join() {
-                        input.dy = 1;
+                    if *self.run_state == RunState::Running {
+                        for (_, input) in (&players, &mut inputs).join() {
+                            input.dy = 1;
+                        }
                     }
                 }
                 _ => {}
