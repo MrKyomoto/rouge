@@ -20,32 +20,39 @@ impl<'a> System<'a> for InputSystem<'a> {
             None => {}
             Some(key) => match key {
                 VirtualKeyCode::Escape => match *self.run_state {
-                    RunState::Paused => *self.run_state = RunState::Running,
-                    RunState::Running => *self.run_state = RunState::Paused,
+                    RunState::MainMenu => {
+                        *self.run_state = RunState::Paused;
+                    }
+                    RunState::Paused => *self.run_state = RunState::MainMenu,
+                    _ => {}
                 },
                 VirtualKeyCode::Left | VirtualKeyCode::Numpad4 | VirtualKeyCode::H => {
-                    if *self.run_state == RunState::Running {
+                    if *self.run_state == RunState::Paused {
+                        *self.run_state = RunState::Running;
                         for (_, input) in (&players, &mut inputs).join() {
                             input.dx = -1;
                         }
                     }
                 }
                 VirtualKeyCode::Right | VirtualKeyCode::Numpad6 | VirtualKeyCode::L => {
-                    if *self.run_state == RunState::Running {
+                    if *self.run_state == RunState::Paused {
+                        *self.run_state = RunState::Running;
                         for (_, input) in (&players, &mut inputs).join() {
                             input.dx = 1;
                         }
                     }
                 }
                 VirtualKeyCode::Up | VirtualKeyCode::Numpad8 | VirtualKeyCode::K => {
-                    if *self.run_state == RunState::Running {
+                    if *self.run_state == RunState::Paused {
+                        *self.run_state = RunState::Running;
                         for (_, input) in (&players, &mut inputs).join() {
                             input.dy = -1;
                         }
                     }
                 }
                 VirtualKeyCode::Down | VirtualKeyCode::Numpad2 | VirtualKeyCode::J => {
-                    if *self.run_state == RunState::Running {
+                    if *self.run_state == RunState::Paused {
+                        *self.run_state = RunState::Running;
                         for (_, input) in (&players, &mut inputs).join() {
                             input.dy = 1;
                         }

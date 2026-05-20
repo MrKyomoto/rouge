@@ -14,6 +14,7 @@ use crate::utils::*;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum RunState {
+    MainMenu,
     Paused,
     Running,
 }
@@ -21,35 +22,62 @@ pub enum RunState {
 struct State {
     pub ecs: World,
     pub run_state: RunState,
+    pub frame_time: f32,
+    pub fixed_dt: f32,
 }
 
 impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
+        self.frame_time += ctx.frame_time_ms;
+        while self.frame_time >= self.fixed_dt * 1000.0 {
+            match self.run_state {
+                RunState::MainMenu => {
+                    self.run_input_system(ctx);
+
+                    // NOTE: ensure that when first come into game player has viewshed
+                    if self.run_state == RunState::Paused {
+                        VisibilitySystem {}.run_now(&self.ecs);
+                    }
+                }
+                RunState::Paused => {
+                    self.run_input_system(ctx);
+                }
+                RunState::Running => {
+                    // self.run_input_system(ctx);
+                    self.run_game_logic_systems(ctx);
+                    self.run_state = RunState::Paused;
+                }
+            }
+            self.frame_time -= self.fixed_dt * 1000.0;
+        }
+
+        ctx.cls();
         match self.run_state {
             RunState::Paused => {
-                ctx.cls();
-                self.run_menu_systems(ctx);
-                self.run_input_system(ctx);
+                self.run_game_render_systems(ctx);
             }
             RunState::Running => {
-                ctx.cls();
-                self.run_game_systems(ctx);
-                self.run_input_system(ctx);
+                self.run_game_render_systems(ctx);
+            }
+            RunState::MainMenu => {
+                self.run_menu_render_systems(ctx);
             }
         }
     }
 }
 
 impl State {
-    fn run_menu_systems(&mut self, ctx: &mut BTerm) {
+    fn run_menu_render_systems(&mut self, ctx: &mut BTerm) {
         MenuRenderSystem { ctx }.run_now(&self.ecs);
         self.ecs.maintain();
     }
 
-    fn run_game_systems(&mut self, ctx: &mut BTerm) {
+    fn run_game_render_systems(&mut self, ctx: &mut BTerm) {
         MapRenderSystem { ctx }.run_now(&self.ecs);
         EntityRenderSystem { ctx }.run_now(&self.ecs);
-
+        self.ecs.maintain();
+    }
+    fn run_game_logic_systems(&mut self, _ctx: &mut BTerm) {
         VisibilitySystem {}.run_now(&self.ecs);
 
         PlayerMovementSystem {}.run_now(&self.ecs);
@@ -71,11 +99,14 @@ impl State {
 fn main() -> BError {
     let context = BTermBuilder::simple80x50()
         .with_title("ECS Roguelike")
+        .with_fps_cap(60.0)
         .build()?;
 
     let mut gs = State {
         ecs: World::new(),
-        run_state: RunState::Paused,
+        run_state: RunState::MainMenu,
+        frame_time: 0.,
+        fixed_dt: 1. / 60.,
     };
 
     gs.ecs.register::<Text>();
