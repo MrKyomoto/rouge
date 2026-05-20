@@ -18,6 +18,9 @@ pub struct Renderable {
 #[derive(Component, Debug)]
 pub struct Player {}
 
+#[derive(Component, Debug)]
+pub struct Monster {}
+
 #[derive(Component, Default)]
 pub struct PlayerInput {
     pub dx: i32,
@@ -29,4 +32,11 @@ pub struct Viewshed {
     pub visible_tiles: Vec<Point>,
     pub range: i32,
     pub dirty: bool,
+}
+
+#[derive(Component)]
+pub struct Text {
+    pub text: String,
+    pub fg: RGB,
+    pub bg: RGB,
 }
