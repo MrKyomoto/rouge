@@ -78,6 +78,8 @@ impl State {
         self.ecs.maintain();
     }
     fn run_game_logic_systems(&mut self, _ctx: &mut BTerm) {
+        MapIndexingSystem {}.run_now(&self.ecs);
+
         VisibilitySystem {}.run_now(&self.ecs);
 
         PlayerMovementSystem {}.run_now(&self.ecs);
@@ -117,6 +119,9 @@ fn main() -> BError {
     gs.ecs.register::<PlayerInput>();
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
+    gs.ecs.register::<BlocksTile>();
+    gs.ecs.register::<CombatStats>();
+    gs.ecs.register::<WantsToMelee>();
 
     gs.ecs
         .create_entity()
@@ -167,6 +172,13 @@ fn main() -> BError {
             .with(Name {
                 name: format!("{} #{}", &name, i),
             })
+            .with(BlocksTile {})
+            .with(CombatStats {
+                max_hp: 16,
+                hp: 16,
+                defense: 1,
+                power: 4,
+            })
             .build();
     }
 
@@ -194,6 +206,13 @@ fn main() -> BError {
         .with(Name {
             name: String::from("Player"),
         })
+        .with(CombatStats {
+            max_hp: 30,
+            hp: 30,
+            defense: 2,
+            power: 5,
+        })
+        .with(BlocksTile {})
         .build();
 
     main_loop(context, gs)

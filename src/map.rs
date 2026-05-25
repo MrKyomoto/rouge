@@ -4,6 +4,7 @@ use bracket_lib::{
     prelude::{Algorithm2D, BaseMap, DistanceAlg, Point, SmallVec},
     random::RandomNumberGenerator,
 };
+use specs::Entity;
 use std::cmp::{max, min};
 
 #[derive(PartialEq, Clone, Copy)]
@@ -19,6 +20,8 @@ pub struct Map {
     pub width: i32,
     pub height: i32,
     pub revealed_tiles: Vec<bool>,
+    pub blocked: Vec<bool>,
+    pub tile_content: Vec<Vec<Entity>>,
 }
 
 impl Algorithm2D for Map {
@@ -37,11 +40,14 @@ impl BaseMap for Map {
         let p2 = Point::new(x2, y2);
         DistanceAlg::Pythagoras.distance2d(p1, p2)
     }
+
+    // NOTE: (usize, f32) = (idx, costs)
     fn get_available_exits(&self, idx: usize) -> SmallVec<[(usize, f32); 10]> {
         let mut exits = SmallVec::new();
         let (x, y) = index_2_xy(idx, self.width);
         let w = self.width as usize;
 
+        // Cardinal directions
         if self.is_exit_valid(x - 1, y) {
             exits.push((idx - 1, 1.0))
         };
@@ -55,6 +61,20 @@ impl BaseMap for Map {
             exits.push((idx + w, 1.0))
         };
 
+        // Diagonals
+        if self.is_exit_valid(x - 1, y - 1) {
+            exits.push(((idx - w) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y - 1) {
+            exits.push(((idx - w) + 1, 1.45));
+        }
+        if self.is_exit_valid(x - 1, y + 1) {
+            exits.push(((idx + w) - 1, 1.45));
+        }
+        if self.is_exit_valid(x + 1, y + 1) {
+            exits.push(((idx + w) + 1, 1.45));
+        }
+
         exits
     }
 }
@@ -66,6 +86,8 @@ impl Map {
             width: COL as i32,
             height: ROW as i32,
             revealed_tiles: vec![false; MAP_SIZE],
+            blocked: vec![false; MAP_SIZE],
+            tile_content: vec![Vec::new(); MAP_SIZE],
         };
 
         const MAX_ROOMS: i32 = 30;
@@ -112,6 +134,8 @@ impl Map {
             width: COL as i32,
             height: ROW as i32,
             revealed_tiles: vec![false; MAP_SIZE],
+            blocked: vec![false; MAP_SIZE],
+            tile_content: vec![Vec::new(); MAP_SIZE],
         };
         for x in 0..map.width {
             map.tiles[flatten_index(x as i32, 0)] = TileType::Wall;
@@ -166,6 +190,18 @@ impl Map {
         }
 
         let idx = flatten_index(x, y);
-        self.tiles[idx] != TileType::Wall
+        !self.blocked[idx]
+    }
+
+    pub fn populate_blocked(&mut self) {
+        for (i, tile) in self.tiles.iter().enumerate() {
+            self.blocked[i] = *tile == TileType::Wall;
+        }
+    }
+
+    pub fn clear_content_index(&mut self) {
+        for content in self.tile_content.iter_mut() {
+            content.clear();
+        }
     }
 }

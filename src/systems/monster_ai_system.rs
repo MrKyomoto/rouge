@@ -1,4 +1,4 @@
-use bracket_lib::prelude::{Point, a_star_search, console};
+use bracket_lib::prelude::{DistanceAlg, Point, a_star_search, console};
 use specs::prelude::*;
 
 use crate::{
@@ -27,16 +27,25 @@ impl<'a> System<'a> for MonsterAIStstem {
         for (_monster, mpos, viewshed, name) in
             (&monster, &mut position, &mut viewshed, &name).join()
         {
-            if viewshed.visible_tiles.contains(&pp) {
+            let distance = DistanceAlg::Pythagoras.distance2d(Point::new(mpos.x, mpos.y), pp);
+            if distance < 1.5 {
                 console::log(format!("Monster {} found player and shouted", name.name));
+                continue;
+            }
+
+            if viewshed.visible_tiles.contains(&pp) {
                 let path = a_star_search(
                     flatten_index(mpos.x, mpos.y),
                     flatten_index(pp.x, pp.y),
                     &mut *map,
                 );
                 if path.success && path.steps.len() > 1 {
-                    (mpos.x, mpos.y) = index_2_xy(path.steps[1], map.width);
-                    viewshed.dirty = true;
+                    if !map.blocked[path.steps[1]] {
+                        let pre_idx = flatten_index(mpos.x, mpos.y);
+                        map.blocked[pre_idx] = false;
+                        (mpos.x, mpos.y) = index_2_xy(path.steps[1], map.width);
+                        viewshed.dirty = true;
+                    }
                 }
             }
         }

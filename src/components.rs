@@ -1,6 +1,9 @@
 use bracket_lib::prelude::*;
-use specs::prelude::*;
-use specs_derive::Component;
+use serde::Deserialize;
+use serde::Serialize;
+use specs::saveload::{ConvertSaveload, Marker};
+use specs::{error::NoError, prelude::*};
+use specs_derive::{Component, ConvertSaveload};
 
 #[derive(Component)]
 pub struct Position {
@@ -44,4 +47,20 @@ pub struct Text {
 #[derive(Component, Debug)]
 pub struct Name {
     pub name: String,
+}
+
+#[derive(Component, Debug)]
+pub struct BlocksTile {}
+
+#[derive(Component, Debug)]
+pub struct CombatStats {
+    pub max_hp: i32,
+    pub hp: i32,
+    pub defense: i32,
+    pub power: i32,
+}
+
+#[derive(Component, Debug, ConvertSaveload, Clone)]
+pub struct WantsToMelee {
+    pub target: Entity,
 }
